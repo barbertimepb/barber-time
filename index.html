@@ -275,17 +275,42 @@
 		#contact .col-lg-7 > div {
 			flex: 1;
 		}
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .hero p { font-size: 1.1rem; }
-        }
-    </style>
+		@media (orientation: landscape) {
+			html.mobile .hero {
+				height: 174vh;
+			}
+		}
+		@media (max-width: 991.98px) {
+			.navbar-transparent:not(.scrolled-mobile):not(.navbar-mobile-open) {
+				background-color: rgba(0, 0, 0, 0.0) !important;
+				padding: 1rem 0 !important;
+				box-shadow: none !important;
+			}
+			.scrolled-mobile,
+			.navbar-mobile-open {
+				background-color: #000000 !important;
+				padding: 0.8rem 0 !important;
+				box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+			}
+
+			.navbar .navbar-brand,
+			.navbar .nav-link,
+			.navbar .navbar-toggler {
+				color: #fff !important;
+			}
+
+			.navbar-toggler-icon {
+				background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+			}
+		}
+		
+        </style>
 </head>
 <body>
     <nav id="mainNavbar" class="navbar navbar-expand-lg navbar-dark fixed-top navbar-transparent">
 		<div class="container">
 			<a class="navbar-brand" href="#home">
-				<img src="assets/logo.png" alt="Logo" height="40">
+				<img src="assets/logo.png" alt="Logo" height="100">
 			</a>
 			<button 
 				class="navbar-toggler" 
@@ -312,7 +337,7 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="container">
-            <h1>Experience the art of Turkish barbering in style.</h1>
+            <h1>Experience The Art of Turkish Barbering in Style.</h1>
             <p>Where style meets Experience tradition. Premium cuts, Beard Styling, and grooming in a relaxed, modern environment.</p>
             <a href="#contact" class="btn btn-gold btn-lg">Book Appointment</a>
         </div>
@@ -327,7 +352,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 mb-lg-0">
                     <h3>Our Story</h3>
-                    <p class="lead">Founded in 2015, SharpEdge Barbershop was born from a passion for classic barbering with a modern twist. We believe every client deserves a premium experience and a cut that boosts confidence.</p>
+                    <p class="lead">Founded in 2025, SharpEdge Barbershop was born from a passion for classic barbering with a modern twist. We believe every client deserves a premium experience and a cut that boosts confidence.</p>
                     <p>Our barbers are certified professionals with years of experience in men's grooming. We use only top-quality products and sterilized tools for every service.</p>
                     <div class="row mt-4">
                         <div class="col-md-6">
@@ -590,23 +615,51 @@
     </script>
 	<script>
 		const navbar = document.getElementById('mainNavbar');
+		const navbarCollapse = document.getElementById('navbarNav');
 
-		const handleScroll = () => {
-			if (window.innerWidth < 992) return; // Exit early on mobile/tablet
+		const updateNavbarState = () => {
+			const isMobile = window.innerWidth < 992;
+			const isScrolled = window.scrollY > 30;
 
-			if (window.scrollY > 50) {
-				navbar.classList.add('navbar-scrolled');
-				navbar.classList.remove('navbar-transparent');
-			} else {
-				navbar.classList.add('navbar-transparent');
-				navbar.classList.remove('navbar-scrolled');
+			// 🖥️ Desktop: classic transparent ↔ opaque
+			if (!isMobile) {
+				if (isScrolled) {
+					navbar.classList.add('navbar-scrolled');
+					navbar.classList.remove('navbar-transparent');
+				} else {
+					navbar.classList.add('navbar-transparent');
+					navbar.classList.remove('navbar-scrolled');
+				}
+			} 
+			// 📱 Mobile: 
+			// - transparent only at top + menu closed
+			// - black otherwise (scrolled or menu open)
+			else {
+				navbar.classList.toggle('scrolled-mobile', isScrolled);
+				// Note: .navbar-mobile-open is controlled by collapse events below
 			}
 		};
 
-		// Run on load, scroll, and resize (for device rotation)
-		window.addEventListener('load', handleScroll);
-		window.addEventListener('scroll', handleScroll);
-		window.addEventListener('resize', handleScroll); // ← important for tablet rotation
+		// Handle menu open/close (mobile only)
+		const handleMenuToggle = () => {
+			const isMobile = window.innerWidth < 992;
+			if (!isMobile) return;
+
+			if (navbarCollapse.classList.contains('show')) {
+				navbar.classList.add('navbar-mobile-open');
+			} else {
+				navbar.classList.remove('navbar-mobile-open');
+			}
+		};
+
+		// Events
+		window.addEventListener('load', updateNavbarState);
+		window.addEventListener('scroll', updateNavbarState);
+		window.addEventListener('resize', updateNavbarState);
+
+		// Bootstrap collapse events (for menu open/close)
+		navbarCollapse.addEventListener('shown.bs.collapse', handleMenuToggle);
+		navbarCollapse.addEventListener('hidden.bs.collapse', handleMenuToggle);
 	</script>
 	<script>
 		// Close navbar when clicking nav links (mobile)
@@ -645,5 +698,34 @@
 			}
 		});
 	</script>
+	<script>
+		(function applyMobileClassByUA() {
+		  // Detect mobile/touch devices via User-Agent
+		  // Covers iOS, Android, Windows Phone, and common mobile browsers
+		  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(
+			navigator.userAgent || navigator.vendor || window.opera
+		  );
+
+		  // Optional: Also detect touch capability (more robust)
+		  // const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 1;
+		  // const isMobile = hasTouch && (/Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent));
+
+		  const root = document.documentElement;
+
+		  if (isMobile) {
+			root.classList.add('mobile');
+			// Optional: add device-specific classes (e.g., 'ios', 'android')
+			if (/iPad|iPhone|iPod/i.test(navigator.userAgent)) {
+			  root.classList.add('ios');
+			} else if (/Android/i.test(navigator.userAgent)) {
+			  root.classList.add('android');
+			}
+		  }
+
+		  // Optional: expose to global for JS logic
+		  window.isMobileDevice = isMobile;
+		})();
+		</script>
+	
 </body>
 </html>

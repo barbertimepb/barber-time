@@ -183,6 +183,63 @@ document.addEventListener('click', function (event) {
     if (e.key === 'ArrowLeft') prevSlide();
   });
 
+  // Touch / Pointer swipe support for mobile and touch devices
+  // - Detects horizontal swipes and triggers next/prev slide
+  // - Uses a threshold and ensures vertical movement (scroll) isn't mistaken for a swipe
+  (function addSwipeSupport() {
+    if (!sliderInner) return;
+
+    // help the browser know we intend horizontal interactions but still allow vertical scrolling
+    try { sliderInner.style.touchAction = sliderInner.style.touchAction || 'pan-y'; } catch (e) { /* ignore */ }
+
+    let startX = 0;
+    let startY = 0;
+    let isDown = false;
+    const THRESHOLD = 50; // px required to qualify as swipe
+
+    // TOUCH events (mobile)
+    sliderInner.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      isDown = true;
+    }, { passive: true });
+
+    sliderInner.addEventListener('touchend', (e) => {
+      if (!isDown) return;
+      isDown = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESHOLD) {
+        if (dx < 0) nextSlide(); else prevSlide();
+      }
+    });
+
+    // POINTER events (covers stylus, some touchpads and modern browsers)
+    sliderInner.addEventListener('pointerdown', (e) => {
+      // only handle primary pointers
+      if (e.isPrimary === false) return;
+      startX = e.clientX;
+      startY = e.clientY;
+      isDown = true;
+      try { sliderInner.setPointerCapture?.(e.pointerId); } catch (err) { /* ignore */ }
+    });
+
+    sliderInner.addEventListener('pointerup', (e) => {
+      if (!isDown) return;
+      isDown = false;
+      try { sliderInner.releasePointerCapture?.(e.pointerId); } catch (err) { /* ignore */ }
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESHOLD) {
+        if (dx < 0) nextSlide(); else prevSlide();
+      }
+    });
+
+    sliderInner.addEventListener('pointercancel', () => { isDown = false; });
+  })();
+
   // Auto-init
   createDots();
 

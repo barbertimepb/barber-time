@@ -4,8 +4,12 @@ document.getElementById('currentYear').textContent = new Date().getFullYear();
 // Smooth scrolling for anchor links and scroll-top visibility
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        // Skip if href is just "#" or empty
+        if (href === '#' || href === '') return;
+        
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const target = document.querySelector(href);
         if (target) {
             window.scrollTo({
                 top: target.offsetTop - 80,
@@ -75,6 +79,10 @@ navbarCollapse.addEventListener('hidden.bs.collapse', handleMenuToggle);
 // Close navbar when clicking nav links (mobile) — fixed to accept event param
  document.querySelectorAll('.nav-link').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        // Skip if href is just "#" or empty (handled by other listeners)
+        if (href === '#' || href === '') return;
+        
         // Close navbar collapse on mobile
         const navbarCollapse = document.getElementById('navbarNav');
         const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
@@ -84,7 +92,7 @@ navbarCollapse.addEventListener('hidden.bs.collapse', handleMenuToggle);
 
         // Smooth scroll (existing logic)
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const target = document.querySelector(href);
         if (target) {
             window.scrollTo({
                 top: target.offsetTop - 80,
@@ -260,4 +268,185 @@ document.addEventListener('click', function (event) {
   };
 
   updateArrows();
+})();
+
+/* -----------------------------
+   Holiday banner behavior
+   - Shows only between 23 Dec and 2 Jan (inclusive)
+   - Allows user to dismiss; dismissal expires after the holiday period
+   - Thumbnail opens modal with full-size image
+   ----------------------------- */
+(function holidayBanner() {
+  const bannerFull = document.getElementById('holiday-banner');
+  const bannerMini = document.getElementById('holiday-banner-mini');
+  const btnClose = document.getElementById('holiday-close'); // minimize button
+  const bellLeft = document.getElementById('holiday-bell-left'); // bell icon on left
+  const notifyBtn = document.getElementById('holiday-notify'); // notification bell (in minimized view)
+  const openLink = document.getElementById('holiday-open'); // thumbnail/link (in full view)
+  const modal = document.getElementById('holiday-modal');
+  const modalClose = document.getElementById('holiday-modal-close');
+  const modalBackdrop = document.getElementById('holiday-modal-backdrop');
+
+  if (!bannerFull || !bannerMini) return; // nothing to do
+
+  function isInHolidayRange(today = new Date()) {
+    const m = today.getMonth(); // 0..11
+    const d = today.getDate();
+
+    // Show if date is between 23 Dec and 31 Dec, OR between 1 Jan and 2 Jan
+    if ((m === 11 && d >= 23 && d <= 31) || (m === 0 && d <= 2)) return true;
+    return false;
+  }
+
+  // Determine the Jan 3 that follows the current holiday window
+  function nextJan3After(today = new Date()) {
+    const year = today.getFullYear();
+    const jan3ThisYear = new Date(year, 0, 3);
+    // if today is on or before Jan 3 this year, use that; otherwise next year
+    if (today <= jan3ThisYear) return jan3ThisYear;
+    return new Date(year + 1, 0, 3);
+  }
+
+  // Show full banner (expanded)
+  function expandBanner() {
+    bannerFull.setAttribute('aria-hidden', 'false');
+    bannerFull.removeAttribute('inert');
+    bannerMini.setAttribute('aria-hidden', 'true');
+    bannerMini.setAttribute('inert', '');
+  }
+
+  // Hide full banner, show minimized bell (collapsed)
+  function minimizeBanner() {
+    // Remove focus from any focused element in the banner before hiding
+    if (document.activeElement && bannerFull.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
+    bannerFull.setAttribute('aria-hidden', 'true');
+    bannerFull.setAttribute('inert', '');
+    bannerMini.setAttribute('aria-hidden', 'false');
+    bannerMini.removeAttribute('inert');
+  }
+
+  // If user dismissed, hide until after Jan 2 (i.e. show again next season)
+  const dismissedUntil = localStorage.getItem('holidayBannerDismissedUntil');
+  if (dismissedUntil) {
+    const until = new Date(dismissedUntil);
+    if (until > new Date()) {
+      bannerFull.setAttribute('aria-hidden', 'true');
+      bannerFull.setAttribute('inert', '');
+      bannerMini.setAttribute('aria-hidden', 'true');
+      bannerMini.setAttribute('inert', '');
+      return; // dismissed for now
+    } else {
+      localStorage.removeItem('holidayBannerDismissedUntil');
+    }
+  }
+
+  // Only show when in holiday range (UNCOMMENT FOR PRODUCTION)
+  // if (!isInHolidayRange()) {
+  //   bannerFull.setAttribute('aria-hidden', 'true');
+  //   bannerFull.setAttribute('inert', '');
+  //   bannerMini.setAttribute('aria-hidden', 'true');
+  //   bannerMini.setAttribute('inert', '');
+  //   return;
+  // }
+
+  // Initially show full banner
+  expandBanner();
+
+  // Close button minimizes the banner to notification bell
+  if (btnClose) {
+    btnClose.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      minimizeBanner();
+    });
+  }
+
+  // Bell icon on left side opens modal (same as clicking the banner)
+  if (bellLeft) {
+    bellLeft.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (modal) {
+        modal.setAttribute('aria-hidden', 'false');
+        modal.removeAttribute('inert');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  }
+
+  // Notification bell expands banner back to full view
+  if (notifyBtn) {
+    notifyBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      expandBanner();
+    });
+  }
+
+  // Thumbnail/text link opens modal for full-size image
+  if (openLink) {
+    openLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (modal) {
+        modal.setAttribute('aria-hidden', 'false');
+        modal.removeAttribute('inert');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  }
+
+  function closeModal() {
+    if (modal) {
+      // Remove focus from modal elements before hiding
+      if (document.activeElement && modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('inert', '');
+    }
+    document.body.style.overflow = '';
+    // Expand banner again after closing modal (if it's still shown)
+    if (bannerFull.getAttribute('aria-hidden') === 'false') {
+      expandBanner();
+    }
+  }
+
+  // Modal close (X)
+  if (modalClose) {
+    modalClose.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
+  // Backdrop click closes modal
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
+  // Dismiss button inside modal (hides banner for the season)
+  const dismissBtn = document.getElementById('holiday-dismiss-btn');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const until = nextJan3After(new Date());
+      localStorage.setItem('holidayBannerDismissedUntil', until.toISOString());
+      bannerFull.setAttribute('aria-hidden', 'true');
+      bannerMini.setAttribute('aria-hidden', 'true');
+      closeModal();
+    });
+  }
+
+  // Allow escape key to close modal
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
 })();

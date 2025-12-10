@@ -750,7 +750,7 @@ html.mobile .slider-arrow:hover {
   }
 }
 @media (max-width: 520px) {
-  .holiday-banner { left: 8px; right: 8px; top: 150px; padding: 0.5rem; }
+  .holiday-banner { left: 82vw; right: 8px; top: 150px; padding: 0.5rem; }
   .holiday-banner-mini { left: 366px; right: auto; top: 121px; }
   .holiday-banner .holiday-thumb { display: none; }
   .holiday-text { font-size: 0.95rem; }

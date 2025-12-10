@@ -50,6 +50,51 @@
 	</nav>
 	<div id="navbarBackdrop" class="d-none d-lg-none"></div>
 
+	<!-- Holiday banner (temporary): shows between 23 Dec and 2 Jan -->
+	<!-- Full banner view (expanded) -->
+	<div id="holiday-banner" class="holiday-banner" aria-hidden="true">
+		<!-- Bell icon on the left -->
+		<button id="holiday-bell-left" class="holiday-bell-left" aria-label="Holiday notification" title="Click for full image">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+				<path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="currentColor"/>
+				<path d="M18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 10-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/>
+			</svg>
+		</button>
+
+		<!-- Content: image and text -->
+		<a href="#" id="holiday-open" class="holiday-link" aria-label="Open holiday opening hours">
+			<img src="assets/slides/christmas-ny.jpg" alt="Holiday opening hours" class="holiday-thumb">
+			<span class="holiday-text">Holiday Opening Hours (23 Dec – 2 Jan)</span>
+		</a>
+
+		<!-- Close button to minimize -->
+		<button id="holiday-close" class="holiday-close" aria-label="Minimize holiday banner" title="Minimize">✕</button>
+	</div>
+
+	<!-- Minimized notification bell view -->
+	<div id="holiday-banner-mini" class="holiday-banner-mini" aria-hidden="true">
+		<button id="holiday-notify" class="holiday-notify" aria-label="Holiday notification, 1 unread">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+				<path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="currentColor"/>
+				<path d="M18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 10-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/>
+			</svg>
+			<span class="notify-badge" aria-hidden="true">1</span>
+		</button>
+	</div>
+
+	<!-- Modal for full-size holiday image -->
+	<div id="holiday-modal" class="holiday-modal" role="dialog" aria-modal="true" aria-hidden="true">
+		<div class="holiday-modal-backdrop" id="holiday-modal-backdrop"></div>
+		<div class="holiday-modal-content" role="document">
+			<button id="holiday-modal-close" class="holiday-modal-close" aria-label="Close">✕</button>
+			<img src="assets/slides/christmas-ny.jpg" alt="Holiday opening hours full" class="holiday-full">
+			<!-- Explicit Dismiss action so users can dismiss for the season from inside the modal 
+			<div style="text-align: right; margin-top: 0.75rem;">
+				<button id="holiday-dismiss-btn" class="btn btn-outline-light btn-sm" aria-label="Dismiss holiday notification">Got it / Dismiss</button>
+			</div>-->
+		</div>
+	</div>
+
     <section id="home" class="hero">
         <div class="container">
             <h1>Experience The Art of Turkish Barbering in Style.</h1>
